@@ -54,6 +54,27 @@ typedef struct {
     QString fault_str;
 } MC_VALUES;
 
+typedef struct {
+    double chi;
+    double omega;
+    double i_alpha;
+    double i_beta;
+    double i_d;
+    double i_q;
+    double u_alpha;
+    double u_beta;
+    double u_d;
+    double u_q;
+    double u_dc;
+    double u_pwm_d;
+    double u_pwm_q;
+    double u_pwm_alpha;
+    double u_pwm_beta;
+    double u_pwm_a;
+    double u_pwm_b;
+    double u_pwm_c;
+} FOC_PLOT_VALUES;
+
 typedef enum {
     COMM_FW_VERSION = 0,
     COMM_JUMP_TO_BOOTLOADER,
@@ -90,7 +111,8 @@ typedef enum {
     COMM_GET_DECODED_CHUK,
     COMM_FORWARD_CAN,
     COMM_SET_CHUCK_DATA,
-    COMM_CUSTOM_APP_DATA
+    COMM_CUSTOM_APP_DATA,
+    COMM_GET_FOC_PLOT_VALUES,
 } COMM_PACKET_ID;
 
 typedef enum {

@@ -59,6 +59,8 @@ private slots:
     void fwVersionReceived(int major, int minor);
     void ackReceived(QString ackType);
     void mcValuesReceived(MC_VALUES values);
+    void focPlotValuesReceived(const FOC_PLOT_VALUES &values);
+
     void printReceived(QString str);
     void samplesReceived(QByteArray data);
     void rotorPosReceived(double pos);

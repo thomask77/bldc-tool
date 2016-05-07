@@ -106,6 +106,8 @@ MainWindow::MainWindow(QWidget *parent) :
             this, SLOT(ackReceived(QString)));
     connect(mPacketInterface, SIGNAL(valuesReceived(MC_VALUES)),
             this, SLOT(mcValuesReceived(MC_VALUES)));
+    connect(mPacketInterface, SIGNAL(valuesReceived(FOC_PLOT_VALUES)),
+            this, SLOT(focPlotValuesReceived(FOC_PLOT_VALUES)));
     connect(mPacketInterface, SIGNAL(printReceived(QString)),
             this, SLOT(printReceived(QString)));
     connect(mPacketInterface, SIGNAL(samplesReceived(QByteArray)),
@@ -1586,6 +1588,12 @@ void MainWindow::mcValuesReceived(MC_VALUES values)
     ui->realtimePlotRest->replot();
     ui->realtimePlotRpm->replot();
 }
+
+void MainWindow::focPlotValuesReceived(const FOC_PLOT_VALUES &values)
+{
+    ui->focPlot->replot();
+}
+
 
 void MainWindow::printReceived(QString str)
 {

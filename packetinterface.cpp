@@ -301,6 +301,7 @@ void PacketInterface::processPacket(const unsigned char *data, int len)
 {
     int32_t ind = 0;
     MC_VALUES values;
+    FOC_PLOT_VALUES foc_plot_values;
     QByteArray bytes;
     QByteArray tmpArray;
     QVector<double> samples;
@@ -365,6 +366,29 @@ void PacketInterface::processPacket(const unsigned char *data, int len)
         values.fault_str = faultToStr(values.fault_code);
 
         emit valuesReceived(values);
+        break;
+
+    case COMM_GET_FOC_PLOT_VALUES:
+        ind = 0;
+        foc_plot_values.chi = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.omega = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.i_alpha = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.i_beta = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.i_d = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.i_q = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_alpha = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_beta = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_d = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_q = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_dc = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_pwm_d = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_pwm_q = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_pwm_alpha = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_pwm_beta = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_pwm_a = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_pwm_b = utility::buffer_get_double16(data, 16, &ind);
+        foc_plot_values.u_pwm_c = utility::buffer_get_double16(data, 16, &ind);
+        emit valuesReceived(foc_plot_values);
         break;
 
     case COMM_PRINT:

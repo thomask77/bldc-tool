@@ -80,6 +80,7 @@ signals:
     void fwVersionReceived(int major, int minor);
     void ackReceived(QString ackType);
     void valuesReceived(MC_VALUES values);
+    void valuesReceived(FOC_PLOT_VALUES values);
     void printReceived(QString str);
     void samplesReceived(QByteArray bytes);
     void rotorPosReceived(double pos);
