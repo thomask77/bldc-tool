@@ -13,7 +13,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = BLDC_Tool
 TEMPLATE = app
-
+CONFIG += c++14
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     serialization.cpp \
     mrichtextedit.cpp \
     mtextedit.cpp \
-    rtdatawidget.cpp
+    rtdatawidget.cpp \
+    TangoColors.cpp
 
 HEADERS  += mainwindow.h \
     qcustomplot.h \
@@ -35,7 +36,8 @@ HEADERS  += mainwindow.h \
     mrichtextedit.h \
     mtextedit.h \
     rtdatawidget.h \
-    datatypes.h
+    datatypes.h \
+    TangoColors.h
 
 FORMS    += mainwindow.ui \
     mrichtextedit.ui

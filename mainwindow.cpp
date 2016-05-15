@@ -25,6 +25,7 @@
 #include <QMessageBox>
 #include <QSerialPortInfo>
 #include "digitalfiltering.h"
+#include "TangoColors.h"
 
 namespace {
 void stepTowards(double &value, double goal, double step) {
@@ -43,6 +44,23 @@ void stepTowards(double &value, double goal, double step) {
     }
 }
 }
+
+
+QCPCurve *circleCurve(QCPAxis *keyAxis, QCPAxis *valueAxis, double r, int points=100)
+{
+    QVector<double> x(points), y(points);
+
+    for (auto i=0; i<points; i++) {
+        double phi = ((double)i / (points-1)) * 2 * M_PI;
+        x[i] = r * cos(phi);
+        y[i] = r * sin(phi);
+    }
+
+    auto curve = new QCPCurve(keyAxis, valueAxis);
+    curve->setData(x, y);
+    return curve;
+}
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -161,6 +179,86 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->realtimePlotPosition->legend->setBrush(QBrush(QColor(255,255,255,230)));
     ui->realtimePlotPosition->xAxis->setLabel("Sample");
     ui->realtimePlotPosition->yAxis->setLabel("Deg");
+
+    /*******************************/
+
+    auto customPlot = ui->focPlot;
+
+    // Set up plot axes
+    //
+    customPlot->xAxis->setLabel("Is_d [A]");
+    customPlot->xAxis->setRange(-60, 60);
+    customPlot->xAxis->setLabelColor(TangoColors::ScarletRed3);
+
+    customPlot->yAxis->setLabel("Is_q [A]");
+    customPlot->yAxis->setRange(-60, 60);
+    customPlot->yAxis->setLabelColor(TangoColors::ScarletRed3);
+
+    customPlot->xAxis2->setVisible(true);
+    customPlot->xAxis2->setLabel("Us_d [V]");
+    customPlot->xAxis2->setRange(-60, 60);
+    customPlot->xAxis2->setLabelColor(TangoColors::SkyBlue3);
+
+    customPlot->yAxis2->setVisible(true);
+    customPlot->yAxis2->setLabel("Us_q [V]");
+    customPlot->yAxis2->setRange(-60, 60);
+    customPlot->yAxis2->setLabelColor(TangoColors::SkyBlue3);
+
+
+    customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+    connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
+    connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
+    connect(customPlot, &QCustomPlot::beforeReplot, [customPlot](){
+        customPlot->xAxis->setScaleRatio( customPlot->yAxis, 1.0);
+    });
+
+    // B and C axes
+    //
+    auto b_axis = new QCPItemLine(customPlot);
+    b_axis->start->setCoords(0, 0);
+    b_axis->end->setCoords(
+        1000 * cos(120.0 / 360 * 2 * M_PI),
+        1000 * sin(120.0 / 360 * 2 * M_PI)
+    );
+    b_axis->setPen(customPlot->xAxis->grid()->pen());
+    b_axis->setAntialiased(false);
+    customPlot->addItem(b_axis);
+
+    auto c_axis = new QCPItemLine(customPlot);
+    c_axis->start->setCoords(0, 0);
+    c_axis->end->setCoords(
+        1000 * cos(240.0 / 360 * 2 * M_PI),
+        1000 * sin(240.0 / 360 * 2 * M_PI)
+    );
+    c_axis->setPen(customPlot->xAxis->grid()->pen());
+    c_axis->setAntialiased(false);
+    customPlot->addItem(c_axis);
+
+    // Circular grid
+    //
+    for (int r=0; r<60; r+=10) {
+        auto c = new QCPItemEllipse(customPlot);
+        c->topLeft->setCoords(-r, -r);
+        c->bottomRight->setCoords(r, r);
+        c->setPen(customPlot->xAxis->grid()->pen());
+        c->setAntialiased(false);
+        customPlot->addItem(c);
+    }
+
+
+
+    auto is_max_circle = circleCurve(customPlot->xAxis,  customPlot->yAxis,  10);
+    auto us_max_circle = circleCurve(customPlot->xAxis2, customPlot->yAxis2, 60);
+
+    is_max_circle->setPen(QPen(TangoColors::ScarletRed1));
+    us_max_circle->setPen(QPen(TangoColors::SkyBlue1));
+
+    customPlot->addPlottable(is_max_circle);
+    customPlot->addPlottable(us_max_circle);
+
+
+    // auto foo = new QCPItemAnchor;
+
 
     qApp->installEventFilter(this);
 }
