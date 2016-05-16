@@ -42,6 +42,7 @@ public:
     QString getFirmwareUploadStatus();
     void cancelFirmwareUpload();
     bool getValues();
+    bool getFocPlotValues();
     bool sendTerminalCmd(QString cmd);
     bool setDutyCycle(double dutyCycle);
     bool setCurrent(double current);

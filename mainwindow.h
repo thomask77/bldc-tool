@@ -177,6 +177,11 @@ private:
     QVector<double> voltInVec;
     QVector<double> positionVec;
 
+    QCPItemLine     *us_vector;
+    QCPItemLine     *is_vector;
+    QCPItemEllipse  *us_max_circle;
+    QCPItemEllipse  *is_max_circle;
+
     bool mRealtimeGraphsAdded;
     bool mDoReplot;
     bool mDoReplotPos;

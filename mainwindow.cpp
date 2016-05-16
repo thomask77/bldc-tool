@@ -46,22 +46,6 @@ void stepTowards(double &value, double goal, double step) {
 }
 
 
-QCPCurve *circleCurve(QCPAxis *keyAxis, QCPAxis *valueAxis, double r, int points=100)
-{
-    QVector<double> x(points), y(points);
-
-    for (auto i=0; i<points; i++) {
-        double phi = ((double)i / (points-1)) * 2 * M_PI;
-        x[i] = r * cos(phi);
-        y[i] = r * sin(phi);
-    }
-
-    auto curve = new QCPCurve(keyAxis, valueAxis);
-    curve->setData(x, y);
-    return curve;
-}
-
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -74,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Compatible firmwares
     mFwVersionReceived = false;
     mFwRetries = 0;
-    mCompatibleFws.append(qMakePair(2, 17));
+    // mCompatibleFws.append(qMakePair(2, 17));
     mCompatibleFws.append(qMakePair(2, 18));
 
     QString supportedFWs;
@@ -204,14 +188,6 @@ MainWindow::MainWindow(QWidget *parent) :
     customPlot->yAxis2->setRange(-60, 60);
     customPlot->yAxis2->setLabelColor(TangoColors::SkyBlue3);
 
-
-    customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
-    connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
-    connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
-    connect(customPlot, &QCustomPlot::beforeReplot, [customPlot](){
-        customPlot->xAxis->setScaleRatio( customPlot->yAxis, 1.0);
-    });
-
     // B and C axes
     //
     auto b_axis = new QCPItemLine(customPlot);
@@ -245,20 +221,49 @@ MainWindow::MainWindow(QWidget *parent) :
         customPlot->addItem(c);
     }
 
+    // Max voltage / current circles
+    //
+    is_max_circle = new QCPItemEllipse(customPlot);
+    us_max_circle = new QCPItemEllipse(customPlot);
 
+    is_max_circle->topLeft->setCoords(-10, -10);
+    is_max_circle->bottomRight->setCoords(10, 10);
 
-    auto is_max_circle = circleCurve(customPlot->xAxis,  customPlot->yAxis,  10);
-    auto us_max_circle = circleCurve(customPlot->xAxis2, customPlot->yAxis2, 60);
+    us_max_circle->topLeft->setCoords(-60, -60);
+    us_max_circle->bottomRight->setCoords(60, 60);
+
 
     is_max_circle->setPen(QPen(TangoColors::ScarletRed1));
     us_max_circle->setPen(QPen(TangoColors::SkyBlue1));
 
-    customPlot->addPlottable(is_max_circle);
-    customPlot->addPlottable(us_max_circle);
+    customPlot->addItem(is_max_circle);
+    customPlot->addItem(us_max_circle);
 
+    // Actual current and voltage vectors
+    //
+    is_vector = new QCPItemLine(customPlot);
+    is_vector->setPen(QPen(TangoColors::ScarletRed1, 3));
+    is_vector->setHead(QCPLineEnding::esSpikeArrow);
+    is_vector->end->setCoords(10, 15);
 
-    // auto foo = new QCPItemAnchor;
+    customPlot->addItem(is_vector);
 
+    us_vector = new QCPItemLine(customPlot);
+    us_vector->setPen(QPen(TangoColors::SkyBlue1, 3));
+    us_vector->setHead(QCPLineEnding::esSpikeArrow);
+    us_vector->end->setCoords(-5, 40);
+
+    customPlot->addItem(us_vector);
+
+    // Set up interactions
+    //
+    customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+    connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
+    connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
+
+    connect(customPlot, &QCustomPlot::beforeReplot, [customPlot](){
+        customPlot->xAxis->setScaleRatio( customPlot->yAxis, 1.0);
+    });
 
     qApp->installEventFilter(this);
 }
@@ -832,6 +837,10 @@ void MainWindow::timerSlot()
     // Update MC readings
     if (ui->realtimeActivateBox->isChecked()) {
         mPacketInterface->getValues();
+    }
+
+    if (ui->cb_updateFocPlot->isChecked()) {
+        mPacketInterface->getFocPlotValues();
     }
 
     // Update decoded servo value
@@ -1412,8 +1421,7 @@ void MainWindow::timerSlot()
             }
 
             ui->currentPlot->replot();
-            ui->voltagePlot->replot();
-
+            ui->voltagePlot->replot();        
         }
 
         mDoReplot = false;
@@ -1689,6 +1697,13 @@ void MainWindow::mcValuesReceived(MC_VALUES values)
 
 void MainWindow::focPlotValuesReceived(const FOC_PLOT_VALUES &values)
 {
+    us_vector->end->setCoords(values.u_d, values.u_q);
+    is_vector->end->setCoords(values.i_d, values.i_q);
+
+    auto r = values.u_dc * 1.0 / sqrt(3);
+    us_max_circle->topLeft->setCoords(-r, -r);
+    us_max_circle->bottomRight->setCoords(r, r);
+
     ui->focPlot->replot();
 }
 

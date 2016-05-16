@@ -4538,6 +4538,13 @@ p, li { white-space: pre-wrap; }
           <item>
            <widget class="QCustomPlot" name="focPlot" native="true"/>
           </item>
+          <item>
+           <widget class="QCheckBox" name="cb_updateFocPlot">
+            <property name="text">
+             <string>CheckBox</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="tab_6">
@@ -5700,8 +5707,8 @@ p, li { white-space: pre-wrap; }
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>103</width>
-            <height>76</height>
+            <width>246</width>
+            <height>79</height>
            </rect>
           </property>
           <attribute name="label">
